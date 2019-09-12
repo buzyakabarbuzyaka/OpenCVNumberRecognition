@@ -1,0 +1,85 @@
+clc;
+clear all;
+close all;
+%%
+disp('Initialization.');
+if ismac
+    % Code to run on Mac platform
+    divider='/';
+elseif isunix
+    % Code to run on Linux platform
+    divider='/';
+elseif ispc
+    % Code to run on Windows platform
+    divider='\';
+else
+    disp('Platform not supported');
+    return;
+end
+answer_folder=[pwd,divider,'..',divider,'test_data',divider,'answers',divider];
+question_folder=[pwd,divider,'..',divider,'test_data',divider,'questions',divider];
+%%
+disp('Getting network data.');
+
+load('net.mat');
+ranges=net.inputs.range;
+IW=net.IW;
+b1=net.b{1};
+LW=net.LW;
+b2=net.b{2};
+
+%post process data
+ranges=ranges{1};
+IW=IW{1};
+LW=LW{2,1};
+%
+length_of_data=size(ranges,1);
+size_of_image=sqrt(size(ranges,1));
+number_of_classifiers=
+%%
+disp('Loading testing data.');
+
+list=findFiles(question_folder);
+N=length(list);
+IMG=zeros(length_of_data,N);
+
+tmp=zeros(length_of_data,1);
+for i=1:N
+    img=imread([question_folder,list{i}]);
+    for j=1:size_of_image
+        tmp((j-1)*size_of_image+1:j*size_of_image)=(img(j,:))';
+    end
+    IMG(:,i)=tmp;
+end
+%%
+disp('Generating answer data.');
+
+tmp=zeros(length_of_data,1);
+for i=1:N
+    img=imread([question_folder,list{i}]);
+    for j=1:size_of_image
+        tmp((j-1)*size_of_image+1:j*size_of_image)=(img(j,:))';
+    end
+    IMG(:,i)=tmp;
+end
+%%
+function Save_matrix(data,out_file_path,img_name)
+name=strrep(img_name,'.png','.txt');
+fileID = fopen([out_file_path,name],'w');
+fprintf(fileID,'%d %d\r\n',size(data));
+for i=1:size(data,1)
+    for j=1:size(data,2)
+        fprintf(fileID,'%16.16f ',data(i,j));
+    end
+    fprintf(fileID,'\r\n');
+end
+fclose(fileID);
+end
+%%
+function list=findFiles(path)
+dd = dir(path);
+list={dd.name};
+folder_flag=[dd.isdir];
+list(folder_flag)=[];
+list(1:2)=[];
+end
